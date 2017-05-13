@@ -7,10 +7,19 @@ const request = require("request");
 const cheerio = require("cheerio");
 const app = express();
 
-// Set the app up with morgan, body-parser, and a static folder
+// Set the app up with morgan and body-parser
 app.use(logger("dev"));
 app.use(bodyParser.urlencoded({ extended:true }));
-app.use(express.static("public"));
+app.use(bodyParser.text());
+app.use(bodyParser.json({ type: "application/vnd.api+json"}));
+
+//Serve static content for the app from the "public" directory in the application directory
+app.use(express.static("./public"));
+
+//Set Handlebars
+const exphbs = require("express-handlebars");
+app.engine("handlebars", exphbs({ defaultLayout: "main" }));
+app.set("view engine", "handlebars");
 
 //Database configuration
 mongoose.connect("mongodb://localhost/");
@@ -36,7 +45,7 @@ const Article = require("./models/Article.js");
 
 // Simple index route
 app.get("/", function(req, res) {
-    res.send(index.html);
+    res.redirect("/");
 });
 
 
