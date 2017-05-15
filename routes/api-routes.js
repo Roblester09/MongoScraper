@@ -1,9 +1,32 @@
 // Dependencies
 // =============================================================
+const mongoose = require("mongoose");
+
+//The scraping tools
+const request = require("request");
+const cheerio = require("cheerio");
+
+// Mongoose promise deprecated - use bluebird promises
+const Promise = require("bluebird");
+mongoose.Promise = Promise;
 
 // Requiring the Note and Article models
 const Note = require("../models/Note.js");
 const Article = require("../models/Article.js");
+
+//Database configuration
+mongoose.connect("mongodb://localhost/mongoosearticles");
+const db = mongoose.connection;
+
+// Show any mongoose errors
+db.on("error", function(error) {
+    console.log("Mongoose Error: ", error);
+});
+
+// Once logged in to the db through mongoose, log a success message
+db.once("open", function() {
+    console.log("Mongoose connection successful.");
+});
 
 // Routes
 // =============================================================
@@ -15,11 +38,10 @@ module.exports = function(app) {
             // Then, we load that into cheerio and save it to $ for a shorthand selector
             const $ = cheerio.load(html);
             // Now, we grab every h2 within an article tag, and do the following:
-            $("p.title").each(function(i, element) {
+            $("article h3").each(function(i, element) {
 
                 // Save an empty result object
                 const result = {};
-
                 // Add the text and href of every link, and save them as properties of the result object
                 result.title = $(this).children("a").text();
                 // var result.link = $(element).children().attr("href"); OR
@@ -58,7 +80,7 @@ module.exports = function(app) {
             });
         });
         // Tell the browser that we finished scraping the text
-        res.send("Scrape Complete");
+        res.json({});
     });
 
     // This will get the articles we scraped from the mongoDB
